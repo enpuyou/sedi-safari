@@ -1,0 +1,51 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Build (unsigned, for local install)
+        run: |
+          xcodebuild \
+            -project sed.i/sed.i.xcodeproj \
+            -scheme "sed.i" \
+            -configuration Release \
+            -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package .app
+        run: |
+          APP_PATH=$(find DerivedData -name "sed.i.app" -maxdepth 6 | head -1)
+          zip -r "sed.i.app.zip" "$APP_PATH"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: sed.i.app.zip
+          body: |
+            ## Install
+
+            1. Download `sed.i.app.zip` and unzip
+            2. Move `sed.i.app` to `/Applications`
+            3. Open it once to register the extension with Safari
+            4. Enable in **Safari → Settings → Extensions**
+
+            If Gatekeeper blocks it:
+            ```
+            xattr -rd com.apple.quarantine /Applications/sed.i.app
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
