@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - uses: actions/checkout@v4
@@ -33,11 +33,7 @@ jobs:
       - name: Select Xcode
         if: steps.tag_check.outputs.exists == 'false'
         run: |
-          if [ -d /Applications/Xcode_15.4.app ]; then
-            sudo xcode-select -s /Applications/Xcode_15.4.app
-          else
-            sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
-          fi
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)"
           xcodebuild -version
 
       - name: Build (unsigned, for local install)
